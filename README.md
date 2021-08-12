@@ -6,12 +6,11 @@
 
 An example for building routed networks with *docker* and *docker-compose*; intended for *use in automated testing* setups.
 
-> ⚠ This is no reference implementation of a NAT router container to be used in production! While the provided material may be used to build testbenches, it is considered purely educational!
+> ⚠ This is no reference implementation of a NAT router container to be used in production! While the provided material may be used to build test benches, it is considered purely educational!
 
 
 ## Layout
-🖥 ↔ *{external}* ☁ ↔ **🖥 ROUTER** ↔ ☁ *{internal}* ↔ 🖥
-
+💻 ⇆ *{external}* ☁ ⇆ **💻 ROUTER** ⇄ ☁ *{internal}* ⇄ 💻
 ### Networks
 
 #### ☁ external
@@ -21,7 +20,7 @@ Default docker bridge network (`default` in *docker-compose*) Represents the *ex
 #### ☁ internal
 > Building a NAT router in docker is only possible from *macvlan* networks, as otherwise all IP traffic is handled directly by the host, outside the realm of influence of a container!
 
-A *macvlan* network without parent interface. Containers in this network can communicate with eachother but not reach targets outside the network by default. A virtual interface is automatically created as parent by docker. A custom subnet and gateway address may be specified from the compose file; if not, docker will assign a random subnet and the first usable (non-broadcast) address on the subnet as gateway to containers on the network.
+A *macvlan* network without parent interface. Containers in this network can communicate with each other but not reach targets outside the network by default. A virtual interface is automatically created as parent by docker. A custom subnet and gateway address may be specified from the compose file; if not, docker will assign a random subnet and the first usable (non-broadcast) address on the subnet as gateway to containers on the network.
 
 
 ### Containers
@@ -59,14 +58,14 @@ Connected to the *internal* network only. For DNS resolution to containers on th
 Apart from mounting `resolv.conf` for container name resolution - if desired -, *no further configuration requirements for this container exist.*
 
 ## Usage
-Examples are provided in `examples/`. Run `docker-compose` on the main compose file and the example to examinate. Afterwards, play around; connect to containers and observe behavior; e.g:
+Examples are provided in `examples/`. Run `docker-compose` on the main compose file and the example to examine. Afterwards, play around; connect to containers and observe behavior; e.g:
 add more containers, remove containers, remove the `router`-container, do not mount `resolv.conf`, etc..
 
 ### examples
 compose files from `examples/`
 
 #### up
-Starts all containers. Runs a shell with attached tty in *internal* and *external* container to keep them alive.
+Starts all containers. Runs a shell with attached tty in *internal* and *external* container to keep them alive. Use to run commands in the containers and observe the behavior; e.g. `docker-compose exec internal ping external`.
 
 ```
 docker-compose -f docker-compose.yml -f examples/up.yml up
@@ -74,7 +73,7 @@ docker-compose -f docker-compose.yml -f examples/up.yml up
 
 #### hello
 * *external* container listens on port `8888` using *netcat*, echoing `hello from external @ channel opened from remote`.
-* *internal* container connects to *external* on port `8888` using netcat, echoing `hello from internal`
+* *internal* container connects to *external* on port `8888` using *netcat*, echoing `hello from internal`
 
 The output from both containers can be observed in the *docker-compose* log.
 
@@ -86,12 +85,16 @@ docker-compose -f docker-compose.yml -f examples/hello.yml up
 Tries to ping *internal* from *external*. Uses `router` as DNS to resolve *internal* network container names. Run with `--abort-on-container-exit` to bring down all containers on individual container exit and observe exit code.
 
 ```
+# NIX
 docker-compose -f docker-compose.yml -f examples/reverse-fail.yml up --abort-on-container-exit; echo exit code: $?
+
+# WIN
+docker-compose -f docker-compose.yml -f examples/reverse-fail.yml up --abort-on-container-exit & echo exit code: %errorlevel%
 ```
 
 
 ### specify routed subnet or gateway
-Specify IPAM config in compose file and provide the subnet in CIDR notation to the `router` container as `ROUTE_NET=<my.su.bn.et/prefix>`. To use a specific gateway
+Find commented sections in `docker-compose.yml` relating to `ROUTE_NET` and/or `ROUTE_GATEWAY`. Setup IPAM config, and provide the subnet in CIDR notation to the `router`-container as `ROUTE_NET=<my.su.bn.et/prefix>`, to use a specific subnet. To use a specific gateway, provide `ROUTE_GATEWAY` in IPAM config and `router`-container environment.
 
 
 
