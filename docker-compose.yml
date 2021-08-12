@@ -2,16 +2,17 @@ version: '3.8'
 services:
   internal:
     image: alpine:latest
+    init: true
     networks:
       routed:
     depends_on:
     - router
     volumes:
     - ./data/resolv.conf:/etc/resolv.conf
-    command: ['/bin/sh', '-c', '(while true; do sleep 1; echo hello from internal; done) | nc external 8888']
 
   router:
     build: ./router
+    init: true
     networks:
       routed:
         priority: 1000
@@ -26,8 +27,8 @@ services:
     - NET_ADMIN
 
   external:
+    init: true
     image: alpine:latest
-    command: ['/bin/sh', '-c', '(while true; do sleep 1; echo hello from external @ channel from internal; done) | nc -l -p 8888']
 
 networks:
   routed:

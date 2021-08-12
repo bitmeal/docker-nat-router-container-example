@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  internal:
+    command: ['/bin/sh', '-c', '(while true; do sleep 1; echo hello from internal; done) | nc external 8888']
+
+  external:
+    command: ['/bin/sh', '-c', '(while true; do sleep 1; echo hello from external @ channel opened from remote; done) | nc -l -p 8888']

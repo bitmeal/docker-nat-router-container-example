@@ -1,0 +1,9 @@
+version: '3.8'
+services:
+  internal:
+    tty: true
+    command: ['/bin/sh']
+
+  external:
+    tty: true
+    command: ['/bin/sh']
