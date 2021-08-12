@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  internal:
+    image: alpine:latest
+    networks:
+      routed:
+    depends_on:
+    - router
+    volumes:
+    - ./data/resolv.conf:/etc/resolv.conf
+    command: ['/bin/sh', '-c', '(while true; do sleep 1; echo hello from internal; done) | nc external 8888']
+
+  router:
+    build: ./router
+    networks:
+      routed:
+        priority: 1000
+      default:
+        priority: 1
+    volumes:
+    - ./data/resolv.conf:/data/resolv.conf
+    # environment:
+    # - ROUTE_NET=${ROUTE_NET}
+    # - ROUTE_GATEWAY=${ROUTE_GATEWAY}
+    cap_add:
+    - NET_ADMIN
+
+  external:
+    image: alpine:latest
+    command: ['/bin/sh', '-c', '(while true; do sleep 1; echo hello from external @ channel from internal; done) | nc -l -p 8888']
+
+networks:
+  routed:
+    driver: macvlan
+    # ipam:
+    #   config:
+    #   - subnet: ${ROUTE_NET}
+    #     gateway: ${ROUTE_GATEWAY}
